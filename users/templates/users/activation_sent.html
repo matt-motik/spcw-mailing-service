@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Проверьте почту{% endblock %}
+{% block header %}Проверьте почту{% endblock %}
+{% block description %}Мы отправили вам письмо со ссылкой для активации{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-body text-center">
+                {% if messages %}
+                {% for message in messages %}
+                {% if message.extra_tags == 'users' %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show"
+                     role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+                <p class="lead">Перейдите по ссылке из письма, чтобы активировать аккаунт.</p>
+                <p class="text-muted">Если письмо не пришло — проверьте папку «Спам».</p>
+                <a href="{% url 'users:login' %}" class="btn btn-outline-primary mt-3">
+                    <i class="bi bi-box-arrow-in-right"></i> Перейти ко входу
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Вы вышли{% endblock %}
+{% block header %}Вы вышли из системы{% endblock %}
+{% block description %}Спасибо за визит! Возвращайтесь скорее{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-body text-center">
+                <a href="{% url 'users:login' %}" class="btn btn-primary mt-3">
+                    <i class="bi bi-box-arrow-in-right"></i> Войти снова
+                </a>
+                <a href="{% url 'catalog:product_list' %}" class="btn btn-outline-secondary mt-3">
+                    <i class="bi bi-house-door"></i> На главную
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
