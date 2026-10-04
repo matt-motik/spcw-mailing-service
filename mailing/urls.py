@@ -7,6 +7,8 @@ from mailing.views import (
     MailingCreateView,
     MailingDeleteView,
     MailingDetailView,
+    MailingDisableView,
+    MailingEnableView,
     MailingListView,
     MailingSendView,
     MailingUpdateView,
@@ -19,28 +21,25 @@ from mailing.views import (
     RecipientDeleteView,
     RecipientDetailView,
     RecipientListView,
-    RecipientUpdateView, MailingDisableView, MailingEnableView, StatisticsView,
+    RecipientUpdateView,
+    StatisticsView,
 )
 
 app_name = "mailing"
 
 urlpatterns = [
     path("", IndexView.as_view(), name="index"),
-
     path("statistics/", StatisticsView.as_view(), name="statistics"),
-
     path("recipients/", RecipientListView.as_view(), name="recipient_list"),
     path("recipients/create/", RecipientCreateView.as_view(), name="recipient_create"),
     path("recipients/<int:pk>/", RecipientDetailView.as_view(), name="recipient_detail"),
     path("recipients/<int:pk>/update/", RecipientUpdateView.as_view(), name="recipient_update"),
     path("recipients/<int:pk>/delete/", RecipientDeleteView.as_view(), name="recipient_delete"),
-
     path("messages/", MessageListView.as_view(), name="message_list"),
     path("messages/create/", MessageCreateView.as_view(), name="message_create"),
     path("messages/<int:pk>/", MessageDetailView.as_view(), name="message_detail"),
     path("messages/<int:pk>/update/", MessageUpdateView.as_view(), name="message_update"),
     path("messages/<int:pk>/delete/", MessageDeleteView.as_view(), name="message_delete"),
-
     path("mailings/", MailingListView.as_view(), name="mailing_list"),
     path("mailings/create/", MailingCreateView.as_view(), name="mailing_create"),
     path("mailings/<int:pk>/", MailingDetailView.as_view(), name="mailing_detail"),

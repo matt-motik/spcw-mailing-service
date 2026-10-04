@@ -31,9 +31,7 @@ class Command(BaseCommand):
             try:
                 success, failure = send_mailing(mailing)
                 self.stdout.write(
-                    self.style.SUCCESS(
-                        f"Рассылка #{mailing.pk}: успешно {success}, неудачно {failure}."
-                    )
+                    self.style.SUCCESS(f"Рассылка #{mailing.pk}: успешно {success}, неудачно {failure}.")
                 )
             except ValueError as exc:
                 self.stdout.write(self.style.ERROR(f"Рассылка #{mailing.pk}: {exc}"))

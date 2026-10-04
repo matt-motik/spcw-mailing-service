@@ -1,10 +1,12 @@
 """Формы приложения mailing."""
 
-from django import forms
+from datetime import datetime
+from typing import Any
 
-from config.mixins import BootstrapStyleMixin
+from django import forms
 from django.utils import timezone
 
+from config.mixins import BootstrapStyleMixin
 from mailing.models import Mailing, Message, Recipient
 
 
@@ -22,6 +24,7 @@ class RecipientForm(BootstrapStyleMixin, forms.ModelForm):
             "comment": forms.Textarea(attrs={"rows": 3, "placeholder": "Заметка о получателе"}),
         }
 
+
 class MessageForm(BootstrapStyleMixin, forms.ModelForm):
     """Форма создания и редактирования сообщения."""
 
@@ -34,6 +37,7 @@ class MessageForm(BootstrapStyleMixin, forms.ModelForm):
             "subject": forms.TextInput(attrs={"placeholder": "Тема письма"}),
             "body": forms.Textarea(attrs={"rows": 8, "placeholder": "Текст письма"}),
         }
+
 
 class MailingForm(BootstrapStyleMixin, forms.ModelForm):
     """Форма создания и редактирования рассылки с валидацией дат."""
@@ -55,22 +59,22 @@ class MailingForm(BootstrapStyleMixin, forms.ModelForm):
             "recipients": forms.SelectMultiple(attrs={"size": 10}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Настраивает формат ввода дат для datetime-local."""
         super().__init__(*args, **kwargs)
         self.fields["start_time"].input_formats = ["%Y-%m-%dT%H:%M"]
         self.fields["end_time"].input_formats = ["%Y-%m-%dT%H:%M"]
 
-    def clean_start_time(self):
+    def clean_start_time(self) -> datetime:
         """Проверяет, что start_time не в прошлом."""
-        start_time = self.cleaned_data["start_time"]
+        start_time: datetime = self.cleaned_data["start_time"]
         if start_time < timezone.now():
             raise forms.ValidationError("Дата начала не может быть в прошлом.")
         return start_time
 
-    def clean(self):
+    def clean(self) -> dict[str, Any]:
         """Проверяет, что start_time раньше end_time."""
-        cleaned_data = super().clean()
+        cleaned_data: dict[str, Any] = super().clean()
         start_time = cleaned_data.get("start_time")
         end_time = cleaned_data.get("end_time")
         if start_time and end_time and start_time >= end_time:

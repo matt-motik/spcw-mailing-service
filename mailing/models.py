@@ -1,4 +1,5 @@
 """Модели данных приложения mailing."""
+
 from django.conf import settings
 from django.db import models
 
@@ -26,6 +27,7 @@ class Recipient(models.Model):
         related_name="recipients",
         verbose_name="Владелец",
     )
+
     class Meta:
         """Мета-параметры модели Recipient."""
 
@@ -64,6 +66,7 @@ class Message(models.Model):
         related_name="messages",
         verbose_name="Владелец",
     )
+
     class Meta:
         """Мета-параметры модели Message."""
 

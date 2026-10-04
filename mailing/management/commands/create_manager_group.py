@@ -1,5 +1,7 @@
 """Команда создания группы «Менеджер»."""
 
+from typing import Any
+
 from django.contrib.auth.models import Group, Permission
 from django.core.management.base import BaseCommand
 
@@ -9,7 +11,7 @@ class Command(BaseCommand):
 
     help = "Создаёт группу «Менеджер» с правами просмотра и отключения рассылок"
 
-    def handle(self, *args, **options) -> None:
+    def handle(self, *args: Any, **options: Any) -> None:
         """Создаёт группу и назначает права."""
         group, _ = Group.objects.get_or_create(name="Менеджер")
 

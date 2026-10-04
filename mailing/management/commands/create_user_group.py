@@ -1,5 +1,7 @@
 """Команда создания группы «Пользователь»."""
 
+from typing import Any
+
 from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
 
@@ -9,7 +11,7 @@ class Command(BaseCommand):
 
     help = "Создаёт группу «Пользователь»"
 
-    def handle(self, *args, **options) -> None:
+    def handle(self, *args: Any, **options: Any) -> None:
         """Создаёт группу, если её нет."""
         group, created = Group.objects.get_or_create(name="Пользователь")
         if created:

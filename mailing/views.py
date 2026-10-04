@@ -1,28 +1,32 @@
 """Представления (views) приложения mailing."""
+
 from typing import Any
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.cache import cache
 from django.db.models import QuerySet
-from django.http import HttpResponse, HttpRequest
+from django.forms import BaseModelForm
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
-from django.views.decorators.cache import cache_page, cache_control
-from django.views.generic import CreateView, DetailView, ListView, UpdateView, DeleteView, TemplateView
+from django.views.decorators.cache import cache_control
+from django.views.generic import CreateView, DeleteView, DetailView, ListView, TemplateView, UpdateView
 
-from mailing.forms import RecipientForm, MessageForm, MailingForm
-from mailing.models import Recipient, Message, Mailing, MailingAttempt
-from mailing.services import update_status, send_mailing
+from mailing.forms import MailingForm, MessageForm, RecipientForm
+from mailing.models import Mailing, MailingAttempt, Message, Recipient
+from mailing.services import send_mailing, update_status
 
-def is_manager(user) -> bool:
+
+def is_manager(user: Any) -> bool:
     """Проверяет, что пользователь — менеджер или суперпользователь."""
     if user.is_superuser:
         return True
-    return user.groups.filter(name="Менеджер").exists()
+    return bool(user.groups.filter(name="Менеджер").exists())
+
 
 class RecipientListView(LoginRequiredMixin, ListView):
     """Список получателей текущего пользователя."""
@@ -46,6 +50,7 @@ class RecipientDetailView(LoginRequiredMixin, DetailView):
     model: type[Recipient] = Recipient
     template_name = "mailing/recipient_detail.html"
     context_object_name = "recipient"
+
     def get_queryset(self) -> QuerySet[Recipient]:
         """Возвращает получателей: все для менеджера, свои для остальных."""
         queryset = Recipient.objects.all()
@@ -77,11 +82,13 @@ class RecipientUpdateView(LoginRequiredMixin, UpdateView):
     form_class = RecipientForm
     template_name = "mailing/recipient_form.html"
     success_url = reverse_lazy("mailing:recipient_list")
+
     def get_queryset(self) -> QuerySet[Recipient]:
         """Редактировать можно своих, суперпользователь — любых."""
         if self.request.user.is_superuser:
             return Recipient.objects.all()
         return Recipient.objects.filter(owner=self.request.user)
+
     def form_valid(self, form: RecipientForm) -> HttpResponse:
         """Сохраняет изменения и выводит сообщение об успехе."""
         response = super().form_valid(form)
@@ -95,12 +102,14 @@ class RecipientDeleteView(LoginRequiredMixin, DeleteView):
     model = Recipient
     template_name = "mailing/recipient_confirm_delete.html"
     success_url = reverse_lazy("mailing:recipient_list")
+
     def get_queryset(self) -> QuerySet[Recipient]:
         """Удалять можно своих, суперпользователь — любых."""
         if self.request.user.is_superuser:
             return Recipient.objects.all()
         return Recipient.objects.filter(owner=self.request.user)
-    def form_valid(self, form) -> HttpResponse:
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
         """Удаляет получателя и выводит сообщение об успехе."""
         name = self.object.full_name
         response = super().form_valid(form)
@@ -130,6 +139,7 @@ class MessageDetailView(LoginRequiredMixin, DetailView):
     model = Message
     template_name = "mailing/message_detail.html"
     context_object_name = "message"
+
     def get_queryset(self) -> QuerySet[Message]:
         """Возвращает сообщения: все для менеджера, свои для остальных."""
         queryset = Message.objects.all()
@@ -161,11 +171,13 @@ class MessageUpdateView(LoginRequiredMixin, UpdateView):
     form_class = MessageForm
     template_name = "mailing/message_form.html"
     success_url = reverse_lazy("mailing:message_list")
+
     def get_queryset(self) -> QuerySet[Message]:
         """Редактировать можно свои, суперпользователь — любые."""
         if self.request.user.is_superuser:
             return Message.objects.all()
         return Message.objects.filter(owner=self.request.user)
+
     def form_valid(self, form: MessageForm) -> HttpResponse:
         """Сохраняет изменения и выводит сообщение об успехе."""
         response = super().form_valid(form)
@@ -179,12 +191,14 @@ class MessageDeleteView(LoginRequiredMixin, DeleteView):
     model = Message
     template_name = "mailing/message_confirm_delete.html"
     success_url = reverse_lazy("mailing:message_list")
+
     def get_queryset(self) -> QuerySet[Message]:
         """Удалять можно свои, суперпользователь — любые."""
         if self.request.user.is_superuser:
             return Message.objects.all()
         return Message.objects.filter(owner=self.request.user)
-    def form_valid(self, form) -> HttpResponse:
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
         """Удаляет сообщение и выводит сообщение об успехе."""
         subject = self.object.subject
         response = super().form_valid(form)
@@ -207,6 +221,7 @@ class MailingListView(LoginRequiredMixin, ListView):
             return queryset
         return queryset.filter(owner=self.request.user)
 
+
 class MailingDetailView(LoginRequiredMixin, DetailView):
     """Детали рассылки с пересчётом статуса."""
 
@@ -221,9 +236,9 @@ class MailingDetailView(LoginRequiredMixin, DetailView):
             return queryset
         return queryset.filter(owner=self.request.user)
 
-    def get_object(self, queryset=None) -> Mailing:
+    def get_object(self, queryset: QuerySet[Mailing] | None = None) -> Mailing:
         """Возвращает рассылку с обновлённым статусом."""
-        obj = super().get_object(queryset)
+        obj: Mailing = super().get_object(queryset)
         update_status(obj)
         return obj
 
@@ -251,11 +266,13 @@ class MailingUpdateView(LoginRequiredMixin, UpdateView):
     form_class = MailingForm
     template_name = "mailing/mailing_form.html"
     success_url = reverse_lazy("mailing:mailing_list")
+
     def get_queryset(self) -> QuerySet[Mailing]:
         """Редактировать можно свои, суперпользователь — любые."""
         if self.request.user.is_superuser:
             return Mailing.objects.select_related("message", "owner")
         return Mailing.objects.select_related("message", "owner").filter(owner=self.request.user)
+
     def form_valid(self, form: MailingForm) -> HttpResponse:
         """Сохраняет изменения и выводит сообщение об успехе."""
         response = super().form_valid(form)
@@ -269,12 +286,14 @@ class MailingDeleteView(LoginRequiredMixin, DeleteView):
     model = Mailing
     template_name = "mailing/mailing_confirm_delete.html"
     success_url = reverse_lazy("mailing:mailing_list")
+
     def get_queryset(self) -> QuerySet[Mailing]:
         """Удалять можно свои, суперпользователь — любые."""
         if self.request.user.is_superuser:
             return Mailing.objects.select_related("message", "owner")
         return Mailing.objects.select_related("message", "owner").filter(owner=self.request.user)
-    def form_valid(self, form) -> HttpResponse:
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
         """Удаляет рассылку и выводит сообщение об успехе."""
         response = super().form_valid(form)
         messages.success(self.request, "Рассылка удалена.", extra_tags="mailing")
@@ -314,7 +333,7 @@ class IndexView(TemplateView):
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """Добавляет агрегаты в контекст (из кеша или БД)."""
-        context = super().get_context_data(**kwargs)
+        context: dict[str, Any] = super().get_context_data(**kwargs)
         stats = cache.get("index_stats")
         if stats is None:
             now = timezone.now()
@@ -345,6 +364,7 @@ class MailingDisableView(LoginRequiredMixin, PermissionRequiredMixin, View):
         messages.success(request, "Рассылка отключена.", extra_tags="mailing")
         return redirect("mailing:mailing_detail", pk=mailing.pk)
 
+
 class MailingEnableView(LoginRequiredMixin, PermissionRequiredMixin, View):
     """Включение рассылки менеджером."""
 
@@ -371,7 +391,7 @@ class StatisticsView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """Собирает агрегаты по попыткам (из кеша или БД)."""
-        context = super().get_context_data(**kwargs)
+        context: dict[str, Any] = super().get_context_data(**kwargs)
         user = self.request.user
 
         mailings = Mailing.objects.all()

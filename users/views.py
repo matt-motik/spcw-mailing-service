@@ -65,7 +65,7 @@ class RegisterView(FormView):
 
         try:
             self.send_activation_email(user)
-        except (smtplib.SMTPException, OSError):
+        except smtplib.SMTPException, OSError:
             user.delete()
             messages.error(
                 self.request,
@@ -178,7 +178,7 @@ class ActivateView(View):
             uid = force_str(urlsafe_base64_decode(uidb64))
             user: CustomUser = CustomUser.objects.get(pk=uid)
             return user
-        except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
+        except TypeError, ValueError, OverflowError, CustomUser.DoesNotExist:
             return None
 
 

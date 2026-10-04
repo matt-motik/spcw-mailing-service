@@ -16,7 +16,7 @@ class CustomUserManager(UserManager):
         email: str,
         password: str | None = None,
         **extra_fields: Any,
-    ) -> "CustomUser":
+    ) -> CustomUser:
         """
         Создаёт и сохраняет обычного пользователя.
 
@@ -34,7 +34,7 @@ class CustomUserManager(UserManager):
         if not email:
             raise ValueError("Email должен быть указан")
         email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+        user: CustomUser = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -44,7 +44,7 @@ class CustomUserManager(UserManager):
         email: str,
         password: str | None = None,
         **extra_fields: Any,
-    ) -> "CustomUser":
+    ) -> CustomUser:
         """
         Создаёт и сохраняет суперпользователя.
 

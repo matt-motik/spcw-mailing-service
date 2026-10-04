@@ -1,11 +1,7 @@
 """Формы приложения users."""
 
 from django import forms
-from django.contrib.auth.forms import (
-    AuthenticationForm,
-    PasswordChangeForm,
-    UserCreationForm,
-)
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, PasswordResetForm, UserCreationForm
 from django.core.exceptions import ValidationError
 
 from config.mixins import BootstrapStyleMixin
@@ -144,9 +140,6 @@ class CustomPasswordChangeForm(BootstrapStyleMixin, PasswordChangeForm):
     Наследуется от стандартной PasswordChangeForm, которая уже содержит
     поля old_password, new_password1 и new_password2 с валидацией.
     """
-
-
-from django.contrib.auth.forms import PasswordResetForm
 
 
 class CustomPasswordResetForm(BootstrapStyleMixin, PasswordResetForm):

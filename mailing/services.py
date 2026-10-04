@@ -32,6 +32,7 @@ def update_status(mailing: Mailing) -> None:
         mailing.status = new_status
         mailing.save(update_fields=["status", "updated_at"])
 
+
 def send_mailing(mailing: Mailing) -> tuple[int, int]:
     """
     Отправляет рассылку всем получателям.

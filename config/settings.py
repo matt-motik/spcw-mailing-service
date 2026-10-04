@@ -165,7 +165,7 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@example.com")
 MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 
 LOGIN_URL = "users:login"
-#LOGIN_REDIRECT_URL = "users:profile"
+# LOGIN_REDIRECT_URL = "users:profile"
 LOGIN_REDIRECT_URL = "mailing:index"
 LOGOUT_REDIRECT_URL = "users:login"
 
