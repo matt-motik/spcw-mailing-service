@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Рассылка{% endblock %}
+{% block header %}Рассылка{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-10 col-lg-8">
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <div class="card mb-3">
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Сообщение</dt>
+                    <dd class="col-sm-8">{{ mailing.message.subject }}</dd>
+
+                    <dt class="col-sm-4">Начало</dt>
+                    <dd class="col-sm-8">{{ mailing.start_time|date:"d.m.Y H:i" }}</dd>
+
+                    <dt class="col-sm-4">Окончание</dt>
+                    <dd class="col-sm-8">{{ mailing.end_time|date:"d.m.Y H:i" }}</dd>
+
+                    <dt class="col-sm-4">Статус</dt>
+                    <dd class="col-sm-8">
+                        {% if mailing.is_disabled %}
+                        <span class="badge bg-warning text-dark">Отключена</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ mailing.get_status_display }}</span>
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-4">Владелец</dt>
+                    <dd class="col-sm-8">{{ mailing.owner.email }}</dd>
+
+                    <dt class="col-sm-4">Получатели</dt>
+                    <dd class="col-sm-8">
+                        {% for r in mailing.recipients.all %}
+                        <div>{{ r.full_name }} &lt;{{ r.email }}&gt;</div>
+                        {% empty %}
+                        <span class="text-muted">Не выбраны</span>
+                        {% endfor %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <form method="post" action="{% url 'mailing:mailing_send' mailing.pk %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-send"></i> Запустить рассылку
+            </button>
+        </form>
+        {% if perms.mailing.can_disable_mailing %}
+            {% if mailing.is_disabled %}
+                <div class="alert alert-warning d-flex justify-content-between align-items-center mt-3 mb-0">
+                    <span>Рассылка отключена менеджером.</span>
+                    <form method="post" action="{% url 'mailing:mailing_enable' mailing.pk %}" class="mb-0">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-success">
+                            <i class="bi bi-play-circle"></i> Включить
+                        </button>
+                    </form>
+                </div>
+            {% else %}
+                <form method="post" action="{% url 'mailing:mailing_disable' mailing.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-pause-circle"></i> Отключить рассылку
+                    </button>
+                </form>
+            {% endif %}
+        {% elif mailing.is_disabled %}
+            <div class="alert alert-warning mt-3 mb-0">
+                Рассылка отключена менеджером.
+            </div>
+        {% endif %}
+
+        <div class="d-flex justify-content-between mt-3">
+            <a href="{% url 'mailing:mailing_list' %}" class="btn btn-outline-secondary">К списку</a>
+            <div>
+                <a href="{% url 'mailing:mailing_update' mailing.pk %}" class="btn btn-warning">Редактировать</a>
+                <a href="{% url 'mailing:mailing_delete' mailing.pk %}" class="btn btn-danger">Удалить</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Рассылки{% endblock %}
+{% block header %}Рассылки{% endblock %}
+
+{% block content %}
+<div class="mb-3 text-end">
+    <a href="{% url 'mailing:mailing_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Добавить рассылку
+    </a>
+</div>
+
+<table class="table table-striped align-middle">
+    <thead>
+    <tr>
+        <th>Сообщение</th>
+        <th>Начало</th>
+        <th>Окончание</th>
+        <th>Статус</th>
+        <th class="text-end">Действия</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for mailing in mailings %}
+    <tr>
+        <td>{{ mailing.message.subject }}</td>
+        <td>{{ mailing.start_time|date:"d.m.Y H:i" }}</td>
+        <td>{{ mailing.end_time|date:"d.m.Y H:i" }}</td>
+        <td>
+        <td>
+            {% if mailing.is_disabled %}
+            <span class="badge bg-warning text-dark">Отключена</span>
+            {% else %}
+            <span class="badge bg-secondary">{{ mailing.get_status_display }}</span>
+            {% endif %}
+        </td>
+        </td>
+        <td class="text-end">
+            <a href="{% url 'mailing:mailing_detail' mailing.pk %}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-eye"></i>
+            </a>
+            <a href="{% url 'mailing:mailing_update' mailing.pk %}" class="btn btn-sm btn-outline-warning">
+                <i class="bi bi-pencil"></i>
+            </a>
+            <a href="{% url 'mailing:mailing_delete' mailing.pk %}" class="btn btn-sm btn-outline-danger">
+                <i class="bi bi-trash"></i>
+            </a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="5" class="text-center text-muted py-4">Рассылок пока нет</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% if page_obj.has_other_pages %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+        {% endif %}
+        <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ message.subject }}{% endblock %}
+{% block header %}{{ message.subject }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-3">Тема</dt>
+                    <dd class="col-sm-9">{{ message.subject }}</dd>
+
+                    <dt class="col-sm-3">Создано</dt>
+                    <dd class="col-sm-9">{{ message.created_at|date:"d.m.Y H:i" }}</dd>
+                </dl>
+
+                <hr>
+
+                <div style="white-space: pre-wrap;">{{ message.body }}</div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between mt-3">
+            <a href="{% url 'mailing:message_list' %}" class="btn btn-outline-secondary">К списку</a>
+            <div>
+                <a href="{% url 'mailing:message_update' message.pk %}" class="btn btn-warning">Редактировать</a>
+                <a href="{% url 'mailing:message_delete' message.pk %}" class="btn btn-danger">Удалить</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

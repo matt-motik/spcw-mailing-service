@@ -2,6 +2,49 @@
 
 from django.urls import path
 
+from mailing.views import (
+    IndexView,
+    MailingCreateView,
+    MailingDeleteView,
+    MailingDetailView,
+    MailingListView,
+    MailingSendView,
+    MailingUpdateView,
+    MessageCreateView,
+    MessageDeleteView,
+    MessageDetailView,
+    MessageListView,
+    MessageUpdateView,
+    RecipientCreateView,
+    RecipientDeleteView,
+    RecipientDetailView,
+    RecipientListView,
+    RecipientUpdateView, MailingDisableView, MailingEnableView,
+)
+
 app_name = "mailing"
 
-urlpatterns: list[path] = []
+urlpatterns = [
+    path("", IndexView.as_view(), name="index"),
+
+    path("recipients/", RecipientListView.as_view(), name="recipient_list"),
+    path("recipients/create/", RecipientCreateView.as_view(), name="recipient_create"),
+    path("recipients/<int:pk>/", RecipientDetailView.as_view(), name="recipient_detail"),
+    path("recipients/<int:pk>/update/", RecipientUpdateView.as_view(), name="recipient_update"),
+    path("recipients/<int:pk>/delete/", RecipientDeleteView.as_view(), name="recipient_delete"),
+
+    path("messages/", MessageListView.as_view(), name="message_list"),
+    path("messages/create/", MessageCreateView.as_view(), name="message_create"),
+    path("messages/<int:pk>/", MessageDetailView.as_view(), name="message_detail"),
+    path("messages/<int:pk>/update/", MessageUpdateView.as_view(), name="message_update"),
+    path("messages/<int:pk>/delete/", MessageDeleteView.as_view(), name="message_delete"),
+
+    path("mailings/", MailingListView.as_view(), name="mailing_list"),
+    path("mailings/create/", MailingCreateView.as_view(), name="mailing_create"),
+    path("mailings/<int:pk>/", MailingDetailView.as_view(), name="mailing_detail"),
+    path("mailings/<int:pk>/update/", MailingUpdateView.as_view(), name="mailing_update"),
+    path("mailings/<int:pk>/delete/", MailingDeleteView.as_view(), name="mailing_delete"),
+    path("mailings/<int:pk>/send/", MailingSendView.as_view(), name="mailing_send"),
+    path("mailings/<int:pk>/disable/", MailingDisableView.as_view(), name="mailing_disable"),
+    path("mailings/<int:pk>/enable/", MailingEnableView.as_view(), name="mailing_enable"),
+]
