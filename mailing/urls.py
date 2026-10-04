@@ -19,13 +19,15 @@ from mailing.views import (
     RecipientDeleteView,
     RecipientDetailView,
     RecipientListView,
-    RecipientUpdateView, MailingDisableView, MailingEnableView,
+    RecipientUpdateView, MailingDisableView, MailingEnableView, StatisticsView,
 )
 
 app_name = "mailing"
 
 urlpatterns = [
     path("", IndexView.as_view(), name="index"),
+
+    path("statistics/", StatisticsView.as_view(), name="statistics"),
 
     path("recipients/", RecipientListView.as_view(), name="recipient_list"),
     path("recipients/create/", RecipientCreateView.as_view(), name="recipient_create"),

@@ -12,7 +12,7 @@ from django.views import View
 from django.views.generic import CreateView, DetailView, ListView, UpdateView, DeleteView, TemplateView
 
 from mailing.forms import RecipientForm, MessageForm, MailingForm
-from mailing.models import Recipient, Message, Mailing
+from mailing.models import Recipient, Message, Mailing, MailingAttempt
 from mailing.services import update_status, send_mailing
 
 def is_manager(user) -> bool:
@@ -343,3 +343,24 @@ class MailingEnableView(LoginRequiredMixin, PermissionRequiredMixin, View):
         mailing.save(update_fields=["is_disabled", "updated_at"])
         messages.success(request, "Рассылка включена.", extra_tags="mailing")
         return redirect("mailing:mailing_detail", pk=mailing.pk)
+
+
+class StatisticsView(LoginRequiredMixin, TemplateView):
+    """Статистика по попыткам рассылок текущего пользователя."""
+
+    template_name = "mailing/statistics.html"
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        """Собирает агрегаты по попыткам."""
+        context = super().get_context_data(**kwargs)
+
+        mailings = Mailing.objects.all()
+        if not (self.request.user.is_superuser or is_manager(self.request.user)):
+            mailings = mailings.filter(owner=self.request.user)
+
+        attempts = MailingAttempt.objects.filter(mailing__in=mailings)
+        context["total_attempts"] = attempts.count()
+        context["success_attempts"] = attempts.filter(status=MailingAttempt.STATUS_SUCCESS).count()
+        context["failure_attempts"] = attempts.filter(status=MailingAttempt.STATUS_FAILURE).count()
+        context["mailings"] = mailings.order_by("-created_at")
+        return context

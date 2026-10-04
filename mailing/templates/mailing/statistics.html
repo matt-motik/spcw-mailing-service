@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Статистика{% endblock %}
+{% block header %}Статистика{% endblock %}
+{% block description %}Отчёт по попыткам рассылок{% endblock %}
+
+{% block content %}
+
+<div class="row text-center mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Всего попыток</h5>
+                <p class="display-4">{{ total_attempts }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Отправлено сообщений</h5>
+                <p class="display-4 text-success">{{ success_attempts }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Неуспешных</h5>
+                <p class="display-4 text-danger">{{ failure_attempts }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<h4 class="mb-3">По рассылкам</h4>
+
+<table class="table table-striped align-middle">
+    <thead>
+        <tr>
+            <th>Сообщение</th>
+            <th>Начало</th>
+            <th>Статус</th>
+            <th class="text-center">Успешно</th>
+            <th class="text-center">Неуспешно</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for mailing in mailings %}
+            <tr>
+                <td>
+                    <a href="{% url 'mailing:mailing_detail' mailing.pk %}">
+                        {{ mailing.message.subject }}
+                    </a>
+                </td>
+                <td>{{ mailing.start_time|date:"d.m.Y H:i" }}</td>
+                <td>
+                    {% if mailing.is_disabled %}
+                        <span class="badge bg-warning text-dark">Отключена</span>
+                    {% else %}
+                        <span class="badge bg-secondary">{{ mailing.get_status_display }}</span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    {{ mailing.attempts.all|length }}
+                </td>
+                <td class="text-center text-muted">—</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="5" class="text-center text-muted py-4">Рассылок пока нет</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

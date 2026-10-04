@@ -9,6 +9,8 @@
             <i class="bi bi-people me-2"></i>Получатели</a>
         <a class="nav-item btn btn-outline-primary" href="{% url 'mailing:message_list' %}">
             <i class="bi bi-envelope me-2"></i>Сообщения</a>
+        <a class="nav-item btn btn-outline-primary" href="{% url 'mailing:statistics' %}">
+            <i class="bi bi-bar-chart me-2"></i>Статистика</a>
 
         {% if user.is_authenticated %}
             <div class="dropdown">
