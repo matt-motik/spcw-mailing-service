@@ -3,12 +3,15 @@ from typing import Any
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.core.cache import cache
 from django.db.models import QuerySet
 from django.http import HttpResponse, HttpRequest
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.views import View
+from django.views.decorators.cache import cache_page, cache_control
 from django.views.generic import CreateView, DetailView, ListView, UpdateView, DeleteView, TemplateView
 
 from mailing.forms import RecipientForm, MessageForm, MailingForm
@@ -299,22 +302,33 @@ class MailingSendView(LoginRequiredMixin, View):
         return redirect("mailing:mailing_detail", pk=mailing.pk)
 
 
-class IndexView(LoginRequiredMixin, TemplateView):
-    """Главная страница со статистикой."""
+@method_decorator(cache_control(public=True, max_age=60), name="dispatch")
+class IndexView(TemplateView):
+    """Главная страница со статистикой.
+
+    Агрегаты кешируются в Redis на 15 минут, браузер — на 60 секунд.
+    Доступна анонимам.
+    """
 
     template_name = "mailing/index.html"
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        """Добавляет агрегаты в контекст."""
+        """Добавляет агрегаты в контекст (из кеша или БД)."""
         context = super().get_context_data(**kwargs)
-        now = timezone.now()
-        context["total_mailings"] = Mailing.objects.count()
-        context["active_mailings"] = Mailing.objects.filter(
-            start_time__lte=now,
-            end_time__gte=now,
-            status=Mailing.STATUS_STARTED,
-        ).count()
-        context["unique_recipients"] = Recipient.objects.count()
+        stats = cache.get("index_stats")
+        if stats is None:
+            now = timezone.now()
+            stats = {
+                "total_mailings": Mailing.objects.count(),
+                "active_mailings": Mailing.objects.filter(
+                    start_time__lte=now,
+                    end_time__gte=now,
+                    status=Mailing.STATUS_STARTED,
+                ).count(),
+                "unique_recipients": Recipient.objects.count(),
+            }
+            cache.set("index_stats", stats, timeout=60 * 15)
+        context.update(stats)
         return context
 
 
