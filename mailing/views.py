@@ -359,22 +359,40 @@ class MailingEnableView(LoginRequiredMixin, PermissionRequiredMixin, View):
         return redirect("mailing:mailing_detail", pk=mailing.pk)
 
 
+@method_decorator(cache_control(private=True, max_age=0), name="dispatch")
 class StatisticsView(LoginRequiredMixin, TemplateView):
-    """Статистика по попыткам рассылок текущего пользователя."""
+    """Статистика по попыткам рассылок текущего пользователя.
+
+    Агрегаты кешируются в Redis на 15 минут по ключу stats:user:{id}.
+    Для менеджера и суперпользователя кеш не используется.
+    """
 
     template_name = "mailing/statistics.html"
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        """Собирает агрегаты по попыткам."""
+        """Собирает агрегаты по попыткам (из кеша или БД)."""
         context = super().get_context_data(**kwargs)
+        user = self.request.user
 
         mailings = Mailing.objects.all()
-        if not (self.request.user.is_superuser or is_manager(self.request.user)):
-            mailings = mailings.filter(owner=self.request.user)
+        if not (user.is_superuser or is_manager(user)):
+            mailings = mailings.filter(owner=user)
 
-        attempts = MailingAttempt.objects.filter(mailing__in=mailings)
-        context["total_attempts"] = attempts.count()
-        context["success_attempts"] = attempts.filter(status=MailingAttempt.STATUS_SUCCESS).count()
-        context["failure_attempts"] = attempts.filter(status=MailingAttempt.STATUS_FAILURE).count()
+        cache_key = f"stats:user:{user.pk}"
+        stats = None
+        if not (user.is_superuser or is_manager(user)):
+            stats = cache.get(cache_key)
+
+        if stats is None:
+            attempts = MailingAttempt.objects.filter(mailing__in=mailings)
+            stats = {
+                "total_attempts": attempts.count(),
+                "success_attempts": attempts.filter(status=MailingAttempt.STATUS_SUCCESS).count(),
+                "failure_attempts": attempts.filter(status=MailingAttempt.STATUS_FAILURE).count(),
+            }
+            if not (user.is_superuser or is_manager(user)):
+                cache.set(cache_key, stats, timeout=60 * 15)
+
+        context.update(stats)
         context["mailings"] = mailings.order_by("-created_at")
         return context
